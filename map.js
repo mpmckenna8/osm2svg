@@ -97,10 +97,10 @@ d3.json(mapzenurl, function(err, json){
      console.log(features)
      // put all the features into SVG paths
      var sprojection = d3.geoMercator()
-    .center([-122.459, 37.73])  // sf is 37.7749° N, 122.4194
+    .center([-122.429, 37.73])  // sf is 37.7749° N, 122.4194
   //  .rotate([4.4, 0])
 //    .parallels([50, 60])
-    .scale(830000)
+    .scale(430000)
     .translate([width / 2, height / 2]);
 
 var path = d3.geoPath(sprojection);
@@ -111,8 +111,37 @@ svg.selectAll("path")
   .data(features.sort(function(a, b) { return a.properties.sort_rank ? a.properties.sort_rank - b.properties.sort_rank : 0 }))
 .enter().append("path")
   .attr("class", function(d) { var kind = d.properties.kind || ''; if(d.properties.boundary){kind += '_boundary';} return d.layer_name + '-layer ' + kind; })
-  .attr("d", path);
+  .attr("d", path)
+  .attr("fill", "none")
+  .attr('stroke-width', .5)
+  .attr('stroke', "green");
 
+
+
+  //get svg element.
+  var svgo = document.getElementById("svg");
+
+  //get svg source.
+  var serializer = new XMLSerializer();
+  var source = serializer.serializeToString(svgo);
+
+  //add name spaces.
+  if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+  }
+
+  //add xml declaration
+  source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+  //convert svg source to URI data scheme.
+  var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
+
+  //set url value to a element's href attribute.
+  document.getElementById("link").href = url;
+  //you can download svg file by right click menu.
 })
 
 function lon2tile(lon, zoom){
