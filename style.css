@@ -2,6 +2,10 @@ body {
   margin: 0;
 }
 
+#link {
+  color: blue;
+  height: 10px
+}
 .map {
   position: relative;
   overflow: hidden;

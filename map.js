@@ -1,9 +1,84 @@
 // this has to get a map from mapzen and give me the data
-var zoom = 13;
 
-var width = 1000,
-height = 1000
 
+var pi = Math.PI,
+    tau = 2 * pi;
+
+var width = Math.max(960, window.innerWidth),
+    height = Math.max(500, window.innerHeight);
+
+// Initialize the projection to fit the world in a 1×1 square centered at the origin.
+var projection = d3.geoMercator()
+.center([-122.4183, 37.7750])
+.scale((1 << 21) / 2 / Math.PI)
+.translate([width / 2, height / 2]);
+
+var path = d3.geoPath()
+    .projection(projection);
+
+var tiler = d3.tile()
+    .size([width, height]);
+
+
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr('id', 'svgo');
+
+
+    svg.selectAll("g")
+        .data(tiler
+          .scale(projection.scale() * 2 * Math.PI)
+          .translate(projection([0, 0])))
+      .enter().append("g")
+        .each(function(d) {
+          var g = d3.select(this);
+          d3.json("https://tile.mapzen.com/mapzen/vector/v1/all/" + d[2] + "/" + d[0] + "/" + d[1] + ".json?api_key=vector-tiles-ChxYDvR", function(error, json) {
+            if (error) throw error;
+
+            console.log(json);
+
+
+            g.selectAll("path")
+              .data(json.transit.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }))
+            .enter().append("path")
+              .attr("class", function(d) { return d.properties.kind; })
+              .attr("d", path)
+              .attr("fill", 'none')
+              .attr('stroke', 'purple');
+
+
+              //get svg element.
+              var svgo = document.getElementById("svgo");
+
+              //get svg source.
+              var serializer = new XMLSerializer();
+              var source = serializer.serializeToString(svgo);
+
+              //add name spaces.
+              if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+                  source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+              }
+              if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+                  source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+              }
+
+              //add xml declaration
+              source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+              //convert svg source to URI data scheme.
+              var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
+
+              //set url value to a element's href attribute.
+              document.getElementById("link").href = url;
+              //you can download svg file by right click menu.
+          });
+            });
+
+
+
+        /*
 var svg = d3.select('svg');
 
 var map = d3.select("body").append("div")
@@ -18,7 +93,7 @@ var projection = d3.geoMercator()
     .scale((1 << 21) / 2 / Math.PI) // change scale here, 21 is about z13
     .translate([-width / 2, -height / 2]); // just temporary
 
-/*    var tile_projection = d3.geoTransform({
+   var tile_projection = d3.geoTransform({
       point: function(x, y) {
         // Sometimes PBF points in a mixed-geometry layer are corrupted
         if(!isNaN(y)){
@@ -32,7 +107,7 @@ var projection = d3.geoMercator()
       }
     })
 
-    */
+
     var tile_projection = d3.geoMercator();
 
 
@@ -151,3 +226,5 @@ function lon2tile(lon, zoom){
 function lat2tile(lat,zoom)  {
   return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom)));
 }
+
+*/
